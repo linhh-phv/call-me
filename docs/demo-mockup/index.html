@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Call Me — demo mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; color: #fff; }
+  body { padding: 24px 24px 0; margin: 0; background: #000; }
+
+  .phone {
+    width: 340px;
+    height: 700px;
+    background: #0b0b10;
+    border-radius: 40px;
+    border: 6px solid #1c1c22;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto;
+  }
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 12px; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 26px;
+    background: #000;
+    border-radius: 13px;
+    z-index: 10;
+  }
+  .status-bar {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 38px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 26px 6px;
+    font-size: 13px; font-weight: 600;
+    z-index: 5;
+  }
+  .status-bar .right { display: flex; gap: 5px; align-items: center; }
+  .status-bar svg { width: 15px; height: 11px; }
+
+  /* All screens occupy area below status bar */
+  .screen { position: absolute; top: 38px; left: 0; right: 0; bottom: 0; display: none; }
+  .screen.active { display: block; }
+  .screen.scrollable { padding: 16px 22px; overflow: hidden; }
+
+  /* User Picker */
+  .picker .title { font-size: 26px; font-weight: 700; margin-bottom: 22px; }
+  .row {
+    display: flex; align-items: center;
+    padding: 14px;
+    background: #1a1a22;
+    border-radius: 12px;
+    margin-bottom: 11px;
+  }
+  .row.pressed { background: #2a2a36; }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 22px;
+    margin-right: 14px;
+    background: linear-gradient(135deg, var(--c1), var(--c2));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px;
+  }
+  .row .name { font-size: 17px; font-weight: 600; }
+  .row .id { color: #888; font-size: 13px; }
+
+  /* Lobby */
+  .lobby .back { color: #888; margin-bottom: 22px; font-size: 15px; }
+  .lobby .hello { font-size: 22px; font-weight: 700; margin-bottom: 28px; }
+  .lobby .label { color: #aaa; margin-bottom: 8px; font-size: 14px; }
+  .lobby .input {
+    background: #1a1a22;
+    color: #fff;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    margin-bottom: 22px;
+  }
+  .lobby .button {
+    background: #3b82f6;
+    padding: 14px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600; font-size: 15px;
+  }
+  .lobby .button.pressed { filter: brightness(0.85); }
+
+  /* Call screen — uses absolute regions inside its own bounds */
+  .call { background: #000; }
+  .call .header {
+    position: absolute; top: 0; left: 0; right: 0; height: 40px;
+    padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .call .room-name { font-weight: 700; font-size: 15px; }
+  .call .count { color: #888; font-size: 13px; }
+  .call .grid {
+    position: absolute; top: 40px; left: 0; right: 0; bottom: 70px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+  .tile {
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tile.cam-off { background: #181820; }
+  .tile.video-active::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--c1), var(--c2));
+    opacity: 0.25;
+  }
+  .big-avatar {
+    width: 64px; height: 64px; border-radius: 32px;
+    background: linear-gradient(135deg, var(--c1), var(--c2));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 24px; color: white;
+    z-index: 2;
+  }
+  .tile.video-active .big-avatar { box-shadow: 0 0 0 3px rgba(255,255,255,0.4); }
+  .tile-label {
+    position: absolute; bottom: 8px; left: 8px;
+    color: white;
+    background: rgba(0,0,0,0.5);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    z-index: 3;
+  }
+  .controls {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 70px;
+    display: flex; justify-content: center; align-items: center;
+    padding: 0 12px 14px;
+    gap: 7px;
+  }
+  .ctrl {
+    background: #1f2937;
+    color: white;
+    padding: 10px 12px;
+    border-radius: 999px;
+    min-width: 62px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .ctrl.off { background: #374151; }
+  .ctrl.danger { background: #dc2626; }
+  .ctrl.pressed { filter: brightness(1.2); }
+
+  .tap-pulse {
+    position: absolute;
+    border-radius: 50%;
+    width: 60px; height: 60px;
+    border: 2px solid rgba(255,255,255,0.7);
+    pointer-events: none;
+    z-index: 50;
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0.85;
+  }
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="status-bar">
+    <span>9:41</span>
+    <span class="right">
+      <svg viewBox="0 0 16 11" fill="white"><rect x="0" y="6" width="3" height="5" rx="0.5"/><rect x="4" y="4" width="3" height="7" rx="0.5"/><rect x="8" y="2" width="3" height="9" rx="0.5"/><rect x="12" y="0" width="3" height="11" rx="0.5"/></svg>
+      <svg viewBox="0 0 18 12" fill="white"><rect x="0" y="0" width="14" height="9" rx="2" stroke="white" fill="none" stroke-width="1"/><rect x="1.5" y="1.5" width="11" height="6" fill="white"/><rect x="15" y="3" width="2" height="3" rx="1" fill="white"/></svg>
+    </span>
+  </div>
+
+  <!-- User picker -->
+  <div class="screen scrollable picker" id="screen-picker">
+    <div class="title">Who are you?</div>
+    <div class="row" data-user="alice" style="--c1:#ff6b9d;--c2:#c93b6f">
+      <div class="avatar">A</div>
+      <div><div class="name">Alice</div><div class="id">@alice</div></div>
+    </div>
+    <div class="row" data-user="bob" style="--c1:#4ecdc4;--c2:#1a8a82">
+      <div class="avatar">B</div>
+      <div><div class="name">Bob</div><div class="id">@bob</div></div>
+    </div>
+    <div class="row" data-user="charlie" style="--c1:#ffd93d;--c2:#c79b00">
+      <div class="avatar">C</div>
+      <div><div class="name">Charlie</div><div class="id">@charlie</div></div>
+    </div>
+  </div>
+
+  <!-- Lobby -->
+  <div class="screen scrollable lobby" id="screen-lobby">
+    <div class="back">← Back</div>
+    <div class="hello" id="lobby-hello">Hi, Alice</div>
+    <div class="label">Room name</div>
+    <div class="input" id="lobby-input">demo-room</div>
+    <div class="button" id="lobby-btn">Join call</div>
+  </div>
+
+  <!-- Call -->
+  <div class="screen call" id="screen-call">
+    <div class="header">
+      <div class="room-name">#demo-room</div>
+      <div class="count">2 in call</div>
+    </div>
+    <div class="grid">
+      <div class="tile video-active" id="tile-self" style="--c1:#ff6b9d;--c2:#c93b6f">
+        <div class="big-avatar">A</div>
+        <div class="tile-label">alice (you)</div>
+      </div>
+      <div class="tile video-active" id="tile-remote" style="--c1:#4ecdc4;--c2:#1a8a82">
+        <div class="big-avatar">B</div>
+        <div class="tile-label">bob</div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="ctrl" id="ctrl-mic">Mic on</div>
+      <div class="ctrl" id="ctrl-cam">Cam on</div>
+      <div class="ctrl" id="ctrl-flip">Flip</div>
+      <div class="ctrl danger" id="ctrl-leave">Leave</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const frame = parseInt(params.get('frame') || '1', 10);
+  const phone = document.getElementById('phone');
+
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+  function press(selector) {
+    const el = document.querySelector(selector);
+    if (el) el.classList.add('pressed');
+  }
+  function pulseAt(left, top) {
+    const p = document.createElement('div');
+    p.className = 'tap-pulse';
+    p.style.left = left + 'px';
+    p.style.top = top + 'px';
+    phone.appendChild(p);
+  }
+  function setCtrl(id, label, cls) {
+    const el = document.getElementById(id);
+    el.textContent = label;
+    el.className = 'ctrl' + (cls ? ' ' + cls : '');
+  }
+
+  // Frames 1..10. Phone size 340x700. Status bar 38. Screen 38..700.
+  // Approx coords for tap pulses: x relative to phone width 340, y is absolute Y in phone
+  switch (frame) {
+    case 1:
+      show('screen-picker');
+      break;
+    case 2:
+      show('screen-picker');
+      press('[data-user="alice"]');
+      pulseAt(170, 110);
+      break;
+    case 3:
+      show('screen-lobby');
+      break;
+    case 4:
+      show('screen-lobby');
+      press('#lobby-btn');
+      pulseAt(170, 250);
+      break;
+    case 5:
+      show('screen-call');
+      break;
+    case 6:
+      show('screen-call');
+      setCtrl('ctrl-mic', 'Mic off', 'off');
+      pulseAt(70, 660);
+      break;
+    case 7:
+      show('screen-call');
+      setCtrl('ctrl-mic', 'Mic off', 'off');
+      setCtrl('ctrl-cam', 'Cam off', 'off');
+      const self = document.getElementById('tile-self');
+      self.classList.remove('video-active');
+      self.classList.add('cam-off');
+      self.querySelector('.big-avatar').style.opacity = '0.4';
+      pulseAt(150, 660);
+      break;
+    case 8:
+      show('screen-call');
+      pulseAt(225, 660);
+      document.getElementById('tile-self').style.filter = 'hue-rotate(40deg) brightness(1.05)';
+      break;
+    case 9:
+      show('screen-call');
+      setCtrl('ctrl-leave', 'Leave', 'danger pressed');
+      pulseAt(298, 660);
+      break;
+    case 10:
+      show('screen-picker');
+      break;
+    default:
+      show('screen-picker');
+  }
+</script>
+</body>
+</html>

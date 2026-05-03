@@ -6,7 +6,13 @@
 [![Self-hosted](https://img.shields.io/badge/Self--hosted-Docker-2496ED?logo=docker)](https://github.com/livekit/livekit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+<p align="center">
+  <img src="docs/demo.gif" alt="Call Me — UI flow demo" width="320" />
+</p>
+
 A cross-platform mobile **video calling app** built entirely on open-source technology — an alternative to Twilio, Agora, or LiveKit Cloud for teams who want to own their stack. The full pipeline (mobile client, signaling, media SFU, auth) runs on infrastructure you control, with **no SaaS dependency and zero per-minute fees**.
+
+> *The demo above is a coded mockup rendered from the actual app styles in [`app/src/screens/`](app/src/screens) — useful for previewing the UI without installing. Real device screenshots/recordings welcome via PR.*
 
 > Looking for a working reference of how React Native, LiveKit, and Node.js fit together for video calling? This repo is a real, end-to-end implementation you can clone and run on a single Mac in 10 minutes.
 
