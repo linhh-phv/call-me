@@ -1,0 +1,11 @@
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    # --node-ip tells LiveKit which IP to advertise in WebRTC ICE candidates.
+    # Devices must be able to reach this IP (use your Mac's LAN IP for real-device testing).
+    command: --dev --bind 0.0.0.0 --node-ip ${LIVEKIT_NODE_IP:-127.0.0.1}
+    ports:
+      - "7880:7880"      # HTTP / WebSocket signaling
+      - "7881:7881"      # TCP fallback
+      - "7882:7882/udp"  # WebRTC media (UDP)
+    restart: unless-stopped
