@@ -1,17 +1,19 @@
 # Call Me
 
-Một MVP video call cho mobile, build trong vài tiếng. Mục đích: chứng minh bạn không cần SaaS đắt tiền để có một sản phẩm video call hoạt động — toàn bộ stack chạy được trên một con Mac, miễn phí, mã nguồn mở.
+Một ứng dụng video call mobile, build từ các công nghệ open-source. Toàn bộ pipeline — từ client mobile, signaling, đến media server — đều chạy được trên hạ tầng tự host, không phụ thuộc SaaS.
 
-> Nếu bạn đang muốn tự dựng video call cho team / startup / khoá học và phân vân giữa "tự host hay xài Twilio/Agora/LiveKit Cloud?" — repo này là cái sandbox để trả lời câu hỏi đó.
-
-## Stack
+## Công nghệ
 
 | Layer | Technology | Vai trò |
 |---|---|---|
-| App mobile | React Native 0.85 (bare, không Expo) | UI trên iOS + Android |
-| WebRTC SDK | [@livekit/react-native](https://github.com/livekit/client-sdk-react-native) | Connect room, publish/subscribe track |
-| Media server | [livekit-server](https://github.com/livekit/livekit) (Apache 2.0, self-host bằng Docker) | SFU forward video/audio |
-| Auth backend | Node.js + Express + livekit-server-sdk | Issue JWT token cho client |
+| App mobile | **React Native 0.85** (bare, không Expo) | UI iOS + Android share codebase, native module cho WebRTC |
+| WebRTC client | **[@livekit/react-native](https://github.com/livekit/client-sdk-react-native)** + [react-native-webrtc](https://github.com/react-native-webrtc/react-native-webrtc) | Quản lý peer connection, capture camera/mic, render remote video |
+| Media server | **[LiveKit](https://github.com/livekit/livekit)** (Go, Apache 2.0) — chạy qua Docker | SFU (Selective Forwarding Unit) route media stream giữa các participant, không transcode → CPU thấp, scale tốt |
+| Signaling protocol | **WebSocket** (ws://7880) + LiveKit signaling protocol (Protocol Buffers) | Negotiate SDP, ICE candidates, room/participant events |
+| Media transport | **WebRTC over UDP** (port 7882), TCP fallback (7881) | RTP cho audio/video, DTLS-SRTP encryption end-to-end |
+| Auth backend | **Node.js + Express + livekit-server-sdk** | Issue JWT token (HS256) chứa room grant để client connect LiveKit |
+| Container runtime | **Docker** (test với [OrbStack](https://orbstack.dev)) | Isolate LiveKit server, expose ports cho LAN |
+| Build hạ tầng | **Xcode 26** (iOS, CocoaPods + Swift), **Gradle 9** (Android, Kotlin + CMake) | Compile native code, package APK/IPA |
 
 ## Kiến trúc
 
